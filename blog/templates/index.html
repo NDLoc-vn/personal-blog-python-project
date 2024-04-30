@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %} Blog {% endblock %}
+
+{% block header %}
+    <div class="logo"><a href="/">Blog</a></div>
+        <form action="{{ url_for('views.search_in_guest') }}" method="POST" class="search-bar">
+            <input type="text" placeholder="Search..." name="search">
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+    <p style="cursor: pointer;" onclick="toggleLoginForm()">Log In</p>
+{% endblock %}
+
+{% block login %}
+    <!-- Popup form -->
+    <div id="login-form" class="login-form">
+        <div class="login-form-content">
+            <span class="close-btn" onclick="toggleLoginForm()">&times;</span>
+            <h2>Login</h2>
+            <form action="{{ url_for('user.login')}}" method="POST">
+                <input type="text" placeholder="Username" name="username">
+                <input type="password" placeholder="Password" name="password">
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block tag %}
+    <h2>List Tags</h2>
+    {% for tag in list_tags %}
+        <p><a href="/filter_in_guest?tag_id={{ tag.id }}">{{ tag.name_tag }}</a></p>
+    {% endfor %}
+{% endblock %}
+
+{% block content %}
+    {% for blog in list_blogs %}
+        <div class="blog">
+            <div class="blog-header">
+                <h2>{{ blog.title }}</h2>
+                <p class="blog-date">{{ blog.date.strftime("%d/%m/%Y %H:%M") }}</p>
+            </div>
+            <div class="blog-content">
+                <pre>{{ blog.data }}</pre>
+            </div>
+            <div class="blog-tags">
+                {% for tag in blog.list_tags %}
+                    <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

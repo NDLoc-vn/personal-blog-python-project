@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %} Admin {% endblock %}
+
+{% block header %}
+    <div class="logo"><a href="/admin">Blog</a></div>
+        <form action="{{ url_for('views.search_in_admin') }}" method="POST" class="search-bar">
+            <input type="text" placeholder="Search..." name="search">
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+        <a href="/logout">Log Out</a>
+{% endblock %}
+
+
+{% block tag %}
+    <h2>List Tags</h2>
+    {% for tag in list_tags %}
+        <p><a href="/filter_in_admin?tag_id={{ tag.id }}">{{ tag.name_tag }}</a></p>
+    {% endfor %}
+{% endblock %}
+
+{% block content %}
+    {% for blog in list_blogs %}
+        <div class="blog">
+            <div class="blog-header">
+                <h2>{{ blog.title }}</h2>
+                <p class="blog-date">{{ blog.date.strftime("%d/%m/%Y %H:%M") }}</p>
+            </div>
+            <div class="blog-content">
+                <pre>{{ blog.data }}</pre>
+            </div>
+            <div class="blog-tags">
+                {% for tag in blog.list_tags %}
+                    <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            <div class="blog-actions">
+                <button class="edit-btn" onclick="toggleEditNoteForm('{{ blog.id }}')">Edit</button>
+                <button class="delete-btn" onclick="deleteBlog('{{ blog.id }}')">Delete</button>
+            </div>
+        </div>    
+        
+        <!-- Edit Form -->
+        <div id="{{ blog.id }}" class="edit-note-form">
+            <div class="form-content">
+                <span class="close-btn" onclick="toggleEditNoteForm('{{ blog.id }}')">&times;</span>
+                <h2>Edit Blog</h2>
+                <form action="{{ url_for('views.update') }}" method="POST">
+                    <input type="hidden" value="{{ blog.id }}" name="content_id">
+                    <input type="text" placeholder="Title" value="{{ blog.title }}" name="title">
+                    <br>
+                    <textarea placeholder="Content" name="data">{{ blog.data }}</textarea>
+                    <br>
+                    <input type="text" placeholder="Tags (comma separated)" value="{% for tag in blog.list_tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}" name="tags">
+                    <button type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block addNote %}
+    <button id="addNoteButton" class="add-note-btn" onclick="toggleAddNoteForm()">+</button>
+    <div id="addNoteForm" class="add-note-form">
+        <div class="form-content">
+            <span class="close-btn" onclick="toggleAddNoteForm()">&times;</span>
+            <h2>Add Blog</h2>
+            <form action="{{ url_for('views.add') }}" method="POST">
+                <input type="text" placeholder="Title" name="title">
+                <textarea placeholder="Content" name="data"></textarea>
+                <input type="text" placeholder="Tags (comma separated)" name="tags">
+                <button type="submit">Add</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
