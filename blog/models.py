@@ -2,10 +2,12 @@ from . import db
 from flask_login import UserMixin
 from datetime import timezone
 from sqlalchemy.sql import func
+from sqlalchemy import Boolean
 
 class Content(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150))
+    private = db.Column(Boolean)
     data = db.Column(db.String(10000))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     contentAndTag = db.relationship("ContentAndTag")

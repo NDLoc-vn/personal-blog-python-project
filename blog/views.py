@@ -10,29 +10,35 @@ import json
 
 views = Blueprint("views", __name__)
 
-def show_blogs(search="", tag_id=None):
+def show_blogs(search="", tag_id=None, role=None):
     list_blogs = []
     if tag_id == None:
-        all_contents = Content.query.filter(Content.data.like('%'+search+'%')).order_by(Content.id.desc()).all()
+        if role == None:
+            all_contents = Content.query.filter(Content.data.like('%'+search+'%'), Content.private == 0).order_by(Content.id.desc()).all()
+        else:
+            all_contents = Content.query.filter(Content.data.like('%'+search+'%')).order_by(Content.id.desc()).all()
         for content in all_contents:
             list_tags = []
             all_content_and_tag = ContentAndTag.query.filter_by(content_id=content.id).all()
             for content_and_tag in all_content_and_tag:
                 tag = Tag.query.filter_by(id=content_and_tag.tag_id).first()
                 list_tags.append(tag.name_tag)
-            blog = Blog(content.id, content.title, content.data, content.date, list_tags)
+            blog = Blog(content.id, content.title, content.private, content.data, content.date, list_tags)
             list_blogs.append(blog)
 
     else:
         filter_contentAndTags = ContentAndTag.query.filter_by(tag_id=tag_id).order_by(ContentAndTag.id.desc()).all()
         for contentAndTag in filter_contentAndTags:
             content = Content.query.filter_by(id=contentAndTag.content_id).first()
+            if role == None:
+                if content.private == 1:
+                    continue
             list_tags = []
             all_content_and_tag = ContentAndTag.query.filter_by(content_id=content.id).all()
             for content_and_tag in all_content_and_tag:
                 tag = Tag.query.filter_by(id=content_and_tag.tag_id).first()
                 list_tags.append(tag.name_tag)
-            blog = Blog(content.id, content.title, content.data, content.date, list_tags)
+            blog = Blog(content.id, content.title, content.private, content.data, content.date, list_tags)
             list_blogs.append(blog)
     
     return list_blogs
@@ -53,7 +59,7 @@ def guest():
 @views.route("/admin")
 @login_required
 def admin():
-    return render_template("admin.html", list_blogs=show_blogs(), list_tags=show_tags())
+    return render_template("admin.html", list_blogs=show_blogs(role="admin"), list_tags=show_tags())
 
 @views.route("/add", methods=["GET", "POST"])
 @login_required
@@ -61,10 +67,16 @@ def add():
     if request.method == "POST":
         title = request.form.get("title")
         data = request.form.get("data")
+        private = request.form.get("private")
         tags = request.form.get("tags")
         tag_list = tags.replace(" ", "").split(",")
 
-        new_content = Content(title=title, data=data, date=datetime.now())
+        if private == "1":
+            private = True
+        else:
+            private = False
+
+        new_content = Content(title=title, data=data, private=private, date=datetime.now())
         db.session.add(new_content)
         db.session.commit()
 
@@ -91,13 +103,20 @@ def update():
         content_id = request.form.get("content_id")
         title = request.form.get("title")
         data = request.form.get("data")
+        private = request.form.get("private")
         tags = request.form.get("tags")
         tag_list = tags.replace(" ", "").split(",")
+        
+        if private == "1":
+            private = True
+        else:
+            private = False
 
         content_update = Content.query.filter_by(id=content_id).first()
         if content_update:
             content_update.title = title
             content_update.data = data
+            content_update.private = private
             content_update.date = datetime.now()
             db.session.commit()
 
@@ -151,7 +170,7 @@ def search_in_admin():
     if request.method == "POST":
         text = request.form.get("search")
         print(text)
-    return render_template("admin.html", list_blogs=show_blogs(text), list_tags=show_tags())
+    return render_template("admin.html", list_blogs=show_blogs(text, role="admin"), list_tags=show_tags())
 
 @views.route("/search_in_guest", methods=["GET", "POST"])
 def search_in_guest():
@@ -164,7 +183,7 @@ def search_in_guest():
 @login_required
 def filter_in_admin():
     tag_id = request.args.get('tag_id')
-    return render_template("admin.html", list_blogs=show_blogs(tag_id=tag_id), list_tags=show_tags())
+    return render_template("admin.html", list_blogs=show_blogs(tag_id=tag_id, role="admin"), list_tags=show_tags())
 
 @views.route("/filter_in_guest", methods=["GET", "POST"])
 def filter_in_guest():

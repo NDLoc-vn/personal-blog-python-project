@@ -24,6 +24,9 @@
         <div class="blog">
             <div class="blog-header">
                 <h2>{{ blog.title }}</h2>
+                {% if blog.private %}
+                    <p class="private-indicator"><em>Private</em></p>
+                {% endif %}
                 <p class="blog-date">{{ blog.date.strftime("%d/%m/%Y %H:%M") }}</p>
             </div>
             <div class="blog-content">
@@ -52,6 +55,9 @@
                     <textarea placeholder="Content" name="data">{{ blog.data }}</textarea>
                     <br>
                     <input type="text" placeholder="Tags (comma separated)" value="{% for tag in blog.list_tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}" name="tags">
+                    <br>
+                    <label><input type="radio" name="private" value="1" {% if blog.private %}checked{% endif %}>Private</label>
+                    <label><input type="radio" name="private" value="0" {% if not blog.private %}checked{% endif %}>Public</label>
                     <button type="submit">Update</button>
                 </form>
             </div>
@@ -69,6 +75,10 @@
                 <input type="text" placeholder="Title" name="title">
                 <textarea placeholder="Content" name="data"></textarea>
                 <input type="text" placeholder="Tags (comma separated)" name="tags">
+                <br>
+                <label><input type="radio" name="private" value="1">Private</label>
+                <label><input type="radio" name="private" value="0" checked>Public</label>
+                <br>
                 <button type="submit">Add</button>
             </form>
         </div>
